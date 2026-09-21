@@ -33,6 +33,7 @@
           <button class="btn primario" id="btn-empezar-comer">Empecé a comer</button>
           <button class="btn secundario" id="btn-terminar-dia">Terminé el día</button>
           <button class="btn secundario" id="btn-corregir-hora">Corregir hora</button>
+          <button class="btn secundario" id="btn-reiniciar-reloj">Reiniciar reloj</button>
         </div>
       </div>
 
@@ -46,6 +47,11 @@
         <h2>Resumen de calorías de hoy</h2>
         <p class="grande" id="calorias-hoy">0 kcal</p>
         <p class="suave" id="detalle-calorias">Aún no registras comidas del menú.</p>
+        <div class="fila-botones" style="margin-top:12px;">
+          <button class="btn secundario" id="btn-toggle-comidas-hoy">Ver registros de hoy</button>
+          <button class="btn secundario" id="btn-borrar-comidas-hoy" style="color: #ef4444; border-color: #ef4444;">Borrar todos los registros de hoy</button>
+        </div>
+        <div id="lista-comidas-hoy" style="display:none; margin-top:12px; border-top: 1px solid var(--borde); padding-top:8px;"></div>
       </div>
     </section>
 
@@ -71,6 +77,7 @@
       <div class="tarjeta">
         <h2>Historial de pesos</h2>
         <div id="historial-pesos"></div>
+        <button class="btn secundario" id="btn-borrar-pesos" style="margin-top:12px; color: #ef4444; border-color: #ef4444;">Borrar historial de pesos</button>
       </div>
     </section>
 
@@ -78,7 +85,10 @@
       <div class="tarjeta">
         <h2>Menú activo</h2>
         <div id="lista-menus-semana"></div>
-        <button class="btn secundario" id="btn-archivar-semana">Archivar semana</button>
+        <div class="fila-botones" style="margin-top:12px;">
+          <button class="btn secundario" id="btn-archivar-semana">Archivar semana</button>
+          <button class="btn secundario" id="btn-borrar-menu-activo" style="color: #ef4444; border-color: #ef4444;">Borrar menú activo</button>
+        </div>
       </div>
 
       <div class="tarjeta">
@@ -123,6 +133,24 @@
       </div>
     </section>
 
+    <section class="pantalla" id="pantalla-ajustes">
+      <div class="tarjeta">
+        <h2>Gestión de datos</h2>
+        <p class="suave" id="info-almacenamiento">Calculando uso de almacenamiento…</p>
+        <div class="fila-botones" style="margin-top:12px;">
+          <button class="btn secundario" id="btn-exportar-datos">Exportar datos</button>
+          <button class="btn secundario" id="btn-importar-trigger">Importar datos</button>
+          <input type="file" id="input-importar-datos" accept=".json" style="display:none;">
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Zona de peligro</h2>
+        <p class="suave">Borra todo el historial de comidas, eventos, pesos, menús y archivo de semanas. Se conserva tu perfil (peso y estatura) y la lista base de súper.</p>
+        <button class="btn secundario" id="btn-borrar-todo" style="margin-top:12px; color: #ef4444; border-color: #ef4444;">Borrar todo el historial</button>
+      </div>
+    </section>
+
   </main>
 
   <nav class="tabbar">
@@ -131,6 +159,7 @@
     <button class="tab" data-pantalla="menus">Menús</button>
     <button class="tab" data-pantalla="archivo">Archivo</button>
     <button class="tab" data-pantalla="super">Súper</button>
+    <button class="tab" data-pantalla="ajustes">Ajustes</button>
   </nav>
 </body>
 </html>

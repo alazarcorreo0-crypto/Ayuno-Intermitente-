@@ -59,7 +59,7 @@ const SUPER_BASE = [
 function initNavegacion() {
   const tabs = document.querySelectorAll(".tab");
   const titulo = document.getElementById("titulo-pantalla");
-  const nombres = { hoy: "Hoy", progreso: "Progreso", menus: "Menús", archivo: "Archivo", super: "Súper" };
+  const nombres = { hoy: "Hoy", progreso: "Progreso", menus: "Menús", archivo: "Archivo", super: "Súper", ajustes: "Ajustes" };
 
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -68,10 +68,12 @@ function initNavegacion() {
       document.querySelectorAll(".pantalla").forEach((p) => p.classList.remove("activa"));
       document.getElementById(`pantalla-${tab.dataset.pantalla}`).classList.add("activa");
       titulo.textContent = nombres[tab.dataset.pantalla];
+      if (tab.dataset.pantalla === "hoy") renderHoy();
       if (tab.dataset.pantalla === "progreso") renderProgreso();
       if (tab.dataset.pantalla === "menus") renderMenus();
       if (tab.dataset.pantalla === "archivo") renderArchivo();
       if (tab.dataset.pantalla === "super") renderSuper();
+      if (tab.dataset.pantalla === "ajustes") renderAjustes();
     });
   });
 }
@@ -155,12 +157,31 @@ function initBotonesReloj() {
   document.getElementById("btn-corregir-hora").addEventListener("click", async () => {
     const hora = prompt("Hora exacta (HH:MM, formato 24h):", HORA_ACTUAL());
     if (!hora || !/^\d{2}:\d{2}$/.test(hora)) return;
-    const tipo = prompt("¿Qué evento quieres corregir? Escribe 'inicio' o 'fin':");
-    if (tipo !== "inicio" && tipo !== "fin") return;
+    const tipoStr = prompt("¿Qué evento quieres corregir? Escribe 'inicio' o 'fin':");
+    if (tipoStr !== "inicio" && tipoStr !== "fin") return;
+    const tipo = tipoStr === "inicio" ? "inicio_ayuno" : "fin_ayuno";
+
     const [h, m] = hora.split(":").map(Number);
     const fecha = new Date();
     fecha.setHours(h, m, 0, 0);
-    await DB.guardarEvento({ tipo: tipo === "inicio" ? "inicio_ayuno" : "fin_ayuno", fecha: fecha.toISOString() });
+
+    const eventos = await DB.leerEventos();
+    const hoyISO = FECHA_HOY();
+    const eventoExistenteHoy = eventos.reverse().find(e => e.tipo === tipo && e.fecha.slice(0, 10) === hoyISO);
+
+    if (eventoExistenteHoy) {
+      eventoExistenteHoy.fecha = fecha.toISOString();
+      const db = await abrirDB();
+      await db.put("eventos", eventoExistenteHoy);
+    } else {
+      await DB.guardarEvento({ tipo, fecha: fecha.toISOString() });
+    }
+    iniciarCuentaRegresiva();
+  });
+
+  document.getElementById("btn-reiniciar-reloj").addEventListener("click", async () => {
+    if (!confirm("¿Reiniciar el reloj? Esto borrará todos los eventos de ayuno registrados.")) return;
+    await DB.borrarEventos();
     iniciarCuentaRegresiva();
   });
 }
@@ -213,6 +234,36 @@ async function renderCaloriasHoy() {
   document.getElementById("calorias-hoy").textContent = `${total} kcal`;
   document.getElementById("detalle-calorias").textContent =
     deHoy.length === 0 ? "Aún no registras comidas del menú." : `${deHoy.length} comida(s) registrada(s).`;
+
+  await renderListaComidasHoy(deHoy);
+}
+
+async function renderListaComidasHoy(deHoy) {
+  const cont = document.getElementById("lista-comidas-hoy");
+  if (!deHoy) {
+    const comidas = await DB.leerComidas();
+    const hoy = FECHA_HOY();
+    deHoy = comidas.filter((c) => c.fecha === hoy && c.kcal !== undefined);
+  }
+  if (deHoy.length === 0) {
+    cont.innerHTML = "<p class='suave'>No hay registros para hoy.</p>";
+    return;
+  }
+  cont.innerHTML = deHoy.map((c) => `
+    <div class="item-comida-log">
+      <div>
+        <strong>${c.hora || ""} ${c.tipo || "Comida"}:</strong> ${c.desc || ""} (${c.kcal} kcal)
+      </div>
+      <button class="btn-eliminar-item" data-id="${c.id}" title="Eliminar registro">✕</button>
+    </div>
+  `).join("");
+
+  cont.querySelectorAll(".btn-eliminar-item").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      await DB.borrarComidaPorId(btn.dataset.id);
+      renderCaloriasHoy();
+    });
+  });
 }
 
 function initBotonesHoy() {
@@ -226,6 +277,20 @@ function initBotonesHoy() {
         fecha: FECHA_HOY(), hora: HORA_ACTUAL(), tipo: c.comida, desc: c.desc, kcal: c.kcal
       });
     }
+    renderCaloriasHoy();
+  });
+
+  const btnToggle = document.getElementById("btn-toggle-comidas-hoy");
+  const listaCont = document.getElementById("lista-comidas-hoy");
+  btnToggle.addEventListener("click", () => {
+    const visible = listaCont.style.display !== "none";
+    listaCont.style.display = visible ? "none" : "block";
+    btnToggle.textContent = visible ? "Ver registros de hoy" : "Ocultar registros de hoy";
+  });
+
+  document.getElementById("btn-borrar-comidas-hoy").addEventListener("click", async () => {
+    if (!confirm("¿Borrar todas las comidas registradas el día de hoy?")) return;
+    await DB.borrarComidasDeHoy();
     renderCaloriasHoy();
   });
 }
@@ -294,6 +359,13 @@ function initBotonesProgreso() {
     if (!peso || !estatura) return;
     await DB.guardarPerfil({ peso, estatura });
     await DB.guardarPeso(peso);
+    renderProgreso();
+  });
+
+  document.getElementById("btn-borrar-pesos").addEventListener("click", async () => {
+    if (!confirm("¿Estás seguro de que deseas borrar todo el historial de pesos?")) return;
+    if (!confirm("Esta acción no se puede deshacer. ¿Confirmar borrado del historial de pesos?")) return;
+    await DB.borrarPesos();
     renderProgreso();
   });
 }
@@ -408,6 +480,13 @@ function initBotonesMenus() {
     renderMenus();
   });
 
+  document.getElementById("btn-borrar-menu-activo").addEventListener("click", async () => {
+    if (!confirm("¿Borrar el menú activo actual?")) return;
+    await DB.borrarMenus();
+    alert("Menú activo borrado.");
+    renderMenus();
+  });
+
   document.getElementById("btn-cargar-super").addEventListener("click", async () => {
     const texto = document.getElementById("input-super-nuevo").value.trim();
     const msg = document.getElementById("msg-carga-super");
@@ -512,6 +591,80 @@ function initBotonesSuper() {
 }
 
 // ============================================================
+// PANTALLA AJUSTES
+// ============================================================
+async function renderAjustes() {
+  const info = document.getElementById("info-almacenamiento");
+  if (navigator.storage && navigator.storage.estimate) {
+    try {
+      const { usage, quota } = await navigator.storage.estimate();
+      const kb = (usage / 1024).toFixed(1);
+      const mb = (usage / (1024 * 1024)).toFixed(2);
+      info.textContent = `Uso de almacenamiento: ${usage > 1024 * 1024 ? mb + " MB" : kb + " KB"}`;
+    } catch (e) {
+      info.textContent = "Almacenamiento en IndexedDB (activo).";
+    }
+  } else {
+    info.textContent = "Almacenamiento local activo.";
+  }
+}
+
+function initBotonesAjustes() {
+  document.getElementById("btn-exportar-datos").addEventListener("click", async () => {
+    const datos = await DB.exportarTodo();
+    const jsonStr = JSON.stringify(datos, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ayuno-datos-${FECHA_HOY()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("btn-importar-trigger").addEventListener("click", () => {
+    document.getElementById("input-importar-datos").click();
+  });
+
+  document.getElementById("input-importar-datos").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!confirm("Importar datos sobrescribirá los datos actuales. ¿Deseas continuar?")) {
+      e.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const datos = JSON.parse(ev.target.result);
+        await DB.importarTodo(datos);
+        alert("Datos importados correctamente.");
+        location.reload();
+      } catch (err) {
+        alert("Error al importar el archivo JSON.");
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  document.getElementById("btn-borrar-todo").addEventListener("click", async () => {
+    if (!confirm("¿Deseas borrar TODO el historial? (Comidas, eventos, pesos, menús y archivo)")) return;
+    if (!confirm("¡Atención! Esta acción borrará permanentemente todos tus registros. ¿Confirmar?")) return;
+
+    const db = await abrirDB();
+    await db.clear("comidas");
+    await db.clear("eventos");
+    await db.clear("pesos");
+    await db.clear("menus");
+    await db.clear("archivo");
+    await DB.borrarSuperSemanal();
+
+    alert("Historial borrado por completo.");
+    location.reload();
+  });
+}
+
+// ============================================================
 // INICIALIZACIÓN
 // ============================================================
 document.addEventListener("DOMContentLoaded", async () => {
@@ -521,6 +674,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initBotonesProgreso();
   initBotonesMenus();
   initBotonesSuper();
+  initBotonesAjustes();
   await pedirPermisoNotificaciones();
   await iniciarCuentaRegresiva();
   await renderHoy();

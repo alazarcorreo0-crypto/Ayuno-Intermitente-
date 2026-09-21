@@ -1,4 +1,4 @@
-const CACHE = "ayuno-v4";
+const CACHE = "ayuno-v5";
 const ARCHIVOS = [
   "./",
   "./index.html",
