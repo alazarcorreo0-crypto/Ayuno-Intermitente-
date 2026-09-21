@@ -27,4 +27,4 @@ const clasificarIMC = (i) => {
 const formatearFecha = (iso) => {
   const d = new Date(iso);
   return d.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
-};
+}; 
