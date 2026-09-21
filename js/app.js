@@ -332,18 +332,20 @@ async function renderMenus() {
 }
 
 async function guardarEdicionMenu(dia, comida, nuevaDesc, nuevaKcal) {
-  const menus = await DB.leerMenus();
+  let menus = await DB.leerMenus();
+  if (menus.length === 0) {
+    for (const d of Object.keys(MENU_DEFECTO)) {
+      for (const c of MENU_DEFECTO[d]) {
+        await DB.guardarMenu({ dia: d, comida: c.comida, desc: c.desc, kcal: c.kcal });
+      }
+    }
+    menus = await DB.leerMenus();
+  }
   const item = menus.find((m) => m.dia === dia && m.comida === comida);
   if (item) {
     if (nuevaDesc !== null) item.desc = nuevaDesc;
     if (nuevaKcal !== null) item.kcal = nuevaKcal;
     await DB.actualizarMenu(item);
-  } else {
-    await DB.guardarMenu({
-      dia, comida,
-      desc: nuevaDesc || "",
-      kcal: nuevaKcal || 0
-    });
   }
 }
 
@@ -360,7 +362,7 @@ function agruparMenusConId(menus) {
   const porDia = {};
   menus.forEach((m) => {
     if (!porDia[m.dia]) porDia[m.dia] = [];
-    porDia[m.dia].push14({ id: m.id, comida h: m.comida. "Corregir hora, desc: m.desc, kcal: m.kcal });
+    porDia[m.dia].push({ id: m.id, comida: m.comida, desc: m.desc, kcal: m.kcal });
   });
   return porDia;
 }
