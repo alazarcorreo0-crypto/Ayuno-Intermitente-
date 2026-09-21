@@ -1,1 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="description" content="App de ayuno 14:10 con menús, progreso y lista de súper">
+  <title>Ayuno 14:10</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/idb@8.0.0/build/umd.js" defer></script>
+  <script src="./js/db.js" defer></script>
+  <script src="./js/utils.js" defer></script>
+  <script src="./js/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1 id="titulo-pantalla">Hoy</h1>
+    <div class="estado-ayuno" id="estado-ayuno">Cargando…</div>
+  </header>
 
+  <main id="contenido">
+
+    <!-- ============ PANTALLA HOY ============ -->
+    <section class="pantalla activa" id="pantalla-hoy">
+      <div class="tarjeta destacada">
+        <h2>Estado del ayuno</h2>
+        <p class="grande" id="cuenta-regresiva">--:--:--</p>
+        <p class="suave" id="mensaje-ayuno">Calculando…</p>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Registrar comidas de hoy</h2>
+        <div class="fila-botones">
+          <button class="btn primario" id="btn-iniciar-comida">Iniciar comida</button>
+          <button class="btn secundario" id="btn-terminar-comida">Terminar comida</button>
+        </div>
+        <p class="suave" id="log-comidas">Sin comidas registradas hoy.</p>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Menú de hoy (<span id="dia-semana"></span>)</h2>
+        <div id="menu-hoy"></div>
+        <button class="btn primario" id="btn-marcar-comido">Marcar como comido</button>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Resumen de calorías de hoy</h2>
+        <p class="grande" id="calorias-hoy">0 kcal</p>
+        <p class="suave" id="detalle-calorias">Aún no registras comidas del menú.</p>
+      </div>
+    </section>
+
+    <!-- ============ PANTALLA PROGRESO ============ -->
+    <section class="pantalla" id="pantalla-progreso">
+      <div class="tarjeta">
+        <h2>Mis datos</h2>
+        <label>Peso actual (kg)
+          <input type="number" id="input-peso" step="0.1" min="0" placeholder="125">
+        </label>
+        <label>Estatura (m)
+          <input type="number" id="input-estatura" step="0.01" min="0" placeholder="1.75">
+        </label>
+        <button class="btn primario" id="btn-guardar-datos">Guardar</button>
+        <p class="suave" id="imc-actual">IMC: —</p>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Evolución del peso</h2>
+        <canvas id="grafica-peso" height="220"></canvas>
+        <p class="suave" id="sin-datos-peso">Aún no hay registros de peso.</p>
+      </div>
+    </section>
+
+    <!-- ============ PANTALLA MENÚS ============ -->
+    <section class="pantalla" id="pantalla-menus">
+      <div class="tarjeta">
+        <h2>Menú semanal</h2>
+        <div id="lista-menus-semana"></div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Cargar menú nuevo (copiar y pegar)</h2>
+        <p class="suave">Formato: una línea por comida. <br>
+          <code>Día|Comida|Descripción|Calorías</code><br>
+          Ejemplo:<br>
+          <code>Lunes|Comida 1|3 huevos duros + 1/2 aguacate|350</code>
+        </p>
+        <textarea id="input-menu-nuevo" rows="8" placeholder="Lunes|Comida 1|3 huevos duros + aguacate|350&#10;Lunes|Comida 2|Pechuga a la plancha + verduras|450"></textarea>
+        <button class="btn primario" id="btn-cargar-menu">Cargar menú</button>
+        <p class="suave" id="msg-carga-menu"></p>
+      </div>
+    </section>
+
+    <!-- ============ PANTALLA SÚPER ============ -->
+    <section class="pantalla" id="pantalla-super">
+      <div class="tarjeta">
+        <h2>Lista de súper</h2>
+        <div id="lista-super"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab activa" data-pantalla="hoy">Hoy</button>
+    <button class="tab" data-pantalla="progreso">Progreso</button>
+    <button class="tab" data-pantalla="menus">Menús</button>
+    <button class="tab" data-pantalla="super">Súper</button>
+  </nav>
+</body>
+</html>
