@@ -27,18 +27,14 @@
     <!-- ============ PANTALLA HOY ============ -->
     <section class="pantalla activa" id="pantalla-hoy">
       <div class="tarjeta destacada">
-        <h2>Estado del ayuno</h2>
+        <h2 id="titulo-reloj">Estado del ayuno</h2>
         <p class="grande" id="cuenta-regresiva">--:--:--</p>
         <p class="suave" id="mensaje-ayuno">Calculando…</p>
-      </div>
-
-      <div class="tarjeta">
-        <h2>Registrar comidas de hoy</h2>
-        <div class="fila-botones">
-          <button class="btn primario" id="btn-iniciar-comida">Iniciar comida</button>
-          <button class="btn secundario" id="btn-terminar-comida">Terminar comida</button>
+        <div class="fila-botones" style="margin-top:12px;">
+          <button class="btn primario" id="btn-empezar-comer">Empecé a comer</button>
+          <button class="btn secundario" id="btn-terminar-dia">Terminé el día</button>
+          <button class="btn secundario" id="btn-corregir-hora">Corregir hora</button>
         </div>
-        <p class="suave" id="log-comidas">Sin comidas registradas hoy.</p>
       </div>
 
       <div class="tarjeta">
@@ -64,7 +60,7 @@
         <label>Estatura (m)
           <input type="number" id="input-estatura" step="0.01" min="0" placeholder="1.75">
         </label>
-        <button class="btn primario" id="btn-guardar-datos">Guardar</button>
+        <button class="btn primario" id="btn-guardar-datos">Guardar peso</button>
         <p class="suave" id="imc-actual">IMC: —</p>
       </div>
 
@@ -73,25 +69,43 @@
         <canvas id="grafica-peso" height="220"></canvas>
         <p class="suave" id="sin-datos-peso">Aún no hay registros de peso.</p>
       </div>
+
+      <div class="tarjeta">
+        <h2>Historial de pesos</h2>
+        <div id="historial-pesos"></div>
+      </div>
     </section>
 
     <!-- ============ PANTALLA MENÚS ============ -->
     <section class="pantalla" id="pantalla-menus">
       <div class="tarjeta">
-        <h2>Menú semanal</h2>
+        <h2>Menú activo</h2>
         <div id="lista-menus-semana"></div>
+        <button class="btn secundario" id="btn-archivar-semana">Archivar semana</button>
       </div>
 
       <div class="tarjeta">
-        <h2>Cargar menú nuevo (copiar y pegar)</h2>
-        <p class="suave">Formato: una línea por comida. <br>
-          <code>Día|Comida|Descripción|Calorías</code><br>
-          Ejemplo:<br>
-          <code>Lunes|Comida 1|3 huevos duros + 1/2 aguacate|350</code>
-        </p>
+        <h2>Cargar menú nuevo</h2>
+        <p class="suave">Formato: <code>Día|Comida|Descripción|Calorías</code></p>
         <textarea id="input-menu-nuevo" rows="8" placeholder="Lunes|Comida 1|3 huevos duros + aguacate|350&#10;Lunes|Comida 2|Pechuga a la plancha + verduras|450"></textarea>
         <button class="btn primario" id="btn-cargar-menu">Cargar menú</button>
         <p class="suave" id="msg-carga-menu"></p>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Cargar lista de súper semanal</h2>
+        <p class="suave">Una línea por item. Formato: <code>Categoría|Nombre</code></p>
+        <textarea id="input-super-nuevo" rows="6" placeholder="Proteínas|Pechuga de pollo&#10;Vegetales|Brócoli congelado"></textarea>
+        <button class="btn primario" id="btn-cargar-super">Cargar lista</button>
+        <p class="suave" id="msg-carga-super"></p>
+      </div>
+    </section>
+
+    <!-- ============ PANTALLA ARCHIVO ============ -->
+    <section class="pantalla" id="pantalla-archivo">
+      <div class="tarjeta">
+        <h2>Semanas archivadas</h2>
+        <div id="lista-archivo"></div>
       </div>
     </section>
 
@@ -100,6 +114,17 @@
       <div class="tarjeta">
         <h2>Lista de súper</h2>
         <div id="lista-super"></div>
+        <button class="btn secundario" id="btn-limpiar-super">Limpiar lista semanal</button>
+      </div>
+      <div class="tarjeta">
+        <h2>Añadir item manualmente</h2>
+        <label>Categoría
+          <input type="text" id="input-super-cat" placeholder="Proteínas">
+        </label>
+        <label>Nombre
+          <input type="text" id="input-super-nombre" placeholder="Pechuga de pollo">
+        </label>
+        <button class="btn primario" id="btn-add-super">Añadir</button>
       </div>
     </section>
 
@@ -109,6 +134,7 @@
     <button class="tab activa" data-pantalla="hoy">Hoy</button>
     <button class="tab" data-pantalla="progreso">Progreso</button>
     <button class="tab" data-pantalla="menus">Menús</button>
+    <button class="tab" data-pantalla="archivo">Archivo</button>
     <button class="tab" data-pantalla="super">Súper</button>
   </nav>
 </body>
