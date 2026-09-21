@@ -47,5 +47,51 @@ const DB = {
   async borrarEventos() { const db = await abrirDB(); await db.clear("eventos"); },
 
   async guardarArchivo(a) { const db = await abrirDB(); await db.add("archivo", a); },
-  async leerArchivo() { const db = await abrirDB(); return (await db.getAll("archivo")).sort((a,b) => b.fecha.localeCompare(a.fecha)); }
+  async leerArchivo() { const db = await abrirDB(); return (await db.getAll("archivo")).sort((a,b) => b.fecha.localeCompare(a.fecha)); },
+
+  async borrarComidaPorId(id) { const db = await abrirDB(); await db.delete("comidas", Number(id)); },
+  async borrarComidasDeHoy() {
+    const db = await abrirDB();
+    const hoy = FECHA_HOY();
+    const comidas = await db.getAll("comidas");
+    for (const c of comidas) {
+      if (c.fecha === hoy) await db.delete("comidas", c.id);
+    }
+  },
+
+  async borrarEventos() { const db = await abrirDB(); await db.clear("eventos"); },
+  async borrarPesos() { const db = await abrirDB(); await db.clear("pesos"); },
+  async borrarArchivo() { const db = await abrirDB(); await db.clear("archivo"); },
+
+  async exportarTodo() {
+    const db = await abrirDB();
+    return {
+      perfil: await db.get("perfil", "datos") || {},
+      pesos: await db.getAll("pesos"),
+      comidas: await db.getAll("comidas"),
+      events: await db.getAll("eventos"),
+      menus: await db.getAll("menus"),
+      super: await db.getAll("super"),
+      archivo: await db.getAll("archivo")
+    };
+  },
+
+  async importarTodo(datos) {
+    const db = await abrirDB();
+    if (datos.perfil !== undefined) await db.put("perfil", datos.perfil, "datos");
+
+    const stores = ["pesos", "comidas", "eventos", "menus", "super", "archivo"];
+    for (const s of stores) {
+      const storeName = s === "eventos" && datos.events ? "eventos" : s;
+      const list = datos[s] || (s === "eventos" ? datos.events : []);
+      if (Array.isArray(list)) {
+        await db.clear(storeName);
+        for (const item of list) {
+          const itemCopy = { ...item };
+          delete itemCopy.id;
+          await db.add(storeName, itemCopy);
+        }
+      }
+    }
+  }
 };
