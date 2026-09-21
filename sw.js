@@ -1,5 +1,4 @@
-// Service Worker - Ayuno 14:10
-const CACHE = "ayuno-v1";
+const CACHE = "ayuno-v2";
 const ARCHIVOS = [
   "./",
   "./index.html",
@@ -28,11 +27,6 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
-
-  // No cachear peticiones a CDNs externos (Chart.js, idb)
   if (url.origin !== self.location.origin) return;
-
-  e.respondWith(
-    caches.match(e.request).then((r) => r || fetch(e.request))
-  );
+  e.respondWith(caches.match(e.request).then((r) => r || fetch(e.request)));
 });
